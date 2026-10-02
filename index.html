@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container header-box">
+            <div>
+                <h1>Library Management System</h1>
+                <p>Simple Library Management Project</p>
+            </div>
+            <a class="home-link" href="/">Dashboard</a>
+        </div>
+    </header>
+
+    <main class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <section class="cards">
+            <div class="card">
+                <span>Total Books</span>
+                <strong>{{ total_books }}</strong>
+            </div>
+            <div class="card">
+                <span>Available Books</span>
+                <strong>{{ available_books }}</strong>
+            </div>
+            <div class="card">
+                <span>Students</span>
+                <strong>{{ total_students }}</strong>
+            </div>
+            <div class="card">
+                <span>Issued Books</span>
+                <strong>{{ active_issues }}</strong>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-heading">
+                <h2>Search Books</h2>
+            </div>
+            <form class="search-form" action="/search" method="get">
+                <input type="text" name="q" placeholder="Enter book title, author or category">
+                <button type="submit">Search</button>
+            </form>
+        </section>
+
+        <div class="two-column">
+            <section class="panel">
+                <div class="panel-heading">
+                    <h2>Add Book</h2>
+                </div>
+                <form action="/add_book" method="post">
+                    <input type="text" name="title" placeholder="Book title" required>
+                    <input type="text" name="author" placeholder="Author name" required>
+                    <input type="text" name="category" placeholder="Category">
+                    <input type="number" name="quantity" min="1" value="1" required>
+                    <button type="submit">Add Book</button>
+                </form>
+            </section>
+
+            <section class="panel">
+                <div class="panel-heading">
+                    <h2>Add Student</h2>
+                </div>
+                <form action="/add_student" method="post">
+                    <input type="text" name="name" placeholder="Student name" required>
+                    <input type="email" name="email" placeholder="Email">
+                    <input type="text" name="phone" placeholder="Phone number">
+                    <button type="submit">Add Student</button>
+                </form>
+            </section>
+        </div>
+
+        <section class="panel">
+            <div class="panel-heading">
+                <h2>Issue Book</h2>
+            </div>
+            {% if books and students %}
+            <form class="issue-form" action="/issue_book" method="post">
+                <select name="book_id" required>
+                    <option value="">Select available book</option>
+                    {% for book in books %}
+                        {% if book.available > 0 %}
+                        <option value="{{ book.id }}">{{ book.title }} ({{ book.available }} available)</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <select name="student_id" required>
+                    <option value="">Select student</option>
+                    {% for student in students %}
+                        <option value="{{ student.id }}">{{ student.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Issue Book</button>
+            </form>
+            {% else %}
+                <p class="note">Add at least one book and one student before issuing a book.</p>
+            {% endif %}
+        </section>
+
+        <section class="panel">
+            <div class="panel-heading">
+                <h2>Books</h2>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Available</th>
+                        <th>Action</th>
+                    </tr>
+                    {% for book in books %}
+                    <tr>
+                        <td>{{ book.id }}</td>
+                        <td>{{ book.title }}</td>
+                        <td>{{ book.author }}</td>
+                        <td>{{ book.category }}</td>
+                        <td>{{ book.quantity }}</td>
+                        <td>{{ book.available }}</td>
+                        <td><a class="delete" href="/delete_book/{{ book.id }}" onclick="return confirm('Delete this book?')">Delete</a></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="empty">No books added yet.</td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-heading">
+                <h2>Students</h2>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Action</th>
+                    </tr>
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ student.id }}</td>
+                        <td>{{ student.name }}</td>
+                        <td>{{ student.email }}</td>
+                        <td>{{ student.phone }}</td>
+                        <td><a class="delete" href="/delete_student/{{ student.id }}" onclick="return confirm('Delete this student?')">Delete</a></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="empty">No students added yet.</td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-heading">
+                <h2>Issue / Return History</h2>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <tr>
+                        <th>Book</th>
+                        <th>Student</th>
+                        <th>Issue Date</th>
+                        <th>Return Date</th>
+                        <th>Fine</th>
+                        <th>Action</th>
+                    </tr>
+                    {% for item in issued %}
+                    <tr>
+                        <td>{{ item.title }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.issue_date }}</td>
+                        <td>{{ item.return_date or '-' }}</td>
+                        <td>Rs. {{ item.fine }}</td>
+                        <td>
+                            {% if not item.return_date %}
+                                <a class="return-btn" href="/return_book/{{ item.id }}">Return</a>
+                            {% else %}
+                                Returned
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="empty">No issue records yet.</td></tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Library Management System | B.Tech CSE Mini Project</p>
+    </footer>
+</body>
+</html>
