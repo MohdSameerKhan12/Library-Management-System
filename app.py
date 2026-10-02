@@ -242,6 +242,7 @@ def search():
     return render_template("search.html", books=books, keyword=keyword)
 
 
+init_db()
+
 if __name__ == "__main__":
-    create_tables()
     app.run(debug=True)
